@@ -1,0 +1,40 @@
+function doPost(e) {
+  
+    var CHANNEL_ACCESS_TOKEN = '你的CHANNEL_ACCESS_TOKEN';
+  var msg= JSON.parse(e.postData.contents);
+  
+  // 取出 replayToken 和發送的訊息文字
+  var replyToken = msg.events[0].replyToken;
+  var msg_text= msg.events[0].message.text
+  
+  if (typeof replyToken === 'undefined') {
+    return;
+  }
+
+  
+  if (msg_text.match("抽") != null){
+    var url = 'https://api.line.me/v2/bot/message/reply';  
+    var url_sheet = '你的Google sheet url';
+    var Sheet = SpreadsheetApp.openByUrl(url_sheet);
+    var data = Sheet.getDataRange().getValues();
+    var rnd_index = Math.floor((Math.random() * data.length));
+    // 由於第一個是標題，所以隨機抽取要從第二個開始
+//    var userMessage = data[rnd_index][1]
+    var userMessage = data[1,rnd_index][1];
+    UrlFetchApp.fetch(url, {
+      'headers': {
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Bearer ' + CHANNEL_ACCESS_TOKEN,
+      },
+      'method': 'post',
+      'payload': JSON.stringify({
+        'replyToken': replyToken,
+        'messages': [{
+          'type': 'image',
+          'originalContentUrl': userMessage,
+          'previewImageUrl':userMessage,
+        }],
+      }),
+    });
+  }
+}
